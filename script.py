@@ -1,15 +1,24 @@
 pos = False
 codePos = 0
+auxVar = []
+
+def varAdress (variable):
+	for i in auxVar:
+		if i[0] == variable:
+			return i[1]
+	return variable
+
 
 def read(i, ind):
 	try:
-		return i[ind]
+		return varAdress(i[ind])
 	except:
 		return "000"
 
 def createCode( i, code, hex ):
 	global pos
 	global codePos
+	global auxVar
 	if pos:
 		code[codePos] += hex + read(i,1)
 		codePos += 1
@@ -37,7 +46,68 @@ for i in data:
 saida = open("ra.hex", "w+")
 
 code = []
-auxVar = []
+
+
+
+for i in vet:
+	if i[0] == "LOADM":
+		continue	
+	elif i[0] == "LOADMQM":
+		continue	
+	elif i[0] == "STORM":
+		continue	
+	elif i[0] == "LOADMQ":
+		continue	
+	elif i[0] == "ADDM":
+		continue	
+	elif i[0] == "SUBM":
+		continue	
+	elif i[0] == "MULM":
+		continue
+	elif i[0] == "DIVM":
+		continue
+	elif i[0] == "RSH":
+		continue
+	elif i[0] == "LSH":
+		continue
+	elif i[0] == "LOADM_ABS":
+		continue
+	elif i[0] == "LOAD-M":
+		continue
+	elif i[0] == "ADDM_ABS":
+		continue
+	elif i[0] == "SUBM_ABS":
+		continue
+	elif i[0] == "JUMPM_E":
+		continue
+	elif i[0] == "JUMPM_D":
+		continue
+	elif i[0] == "JUMP+M_E":
+		continue
+	elif i[0] == "JUMP+M_D":
+		continue
+	elif i[0] == "STORM_E":
+		continue
+	elif i[0] == "STORM_D":
+		continue
+	else:
+		auxVar.append(i)
+
+#print (auxVar)
+
+
+varCount = 0
+var = []
+
+for i in auxVar:
+	aux = hex(varCount)[2:]
+	endVar = aux.zfill(3)
+	var.append(endVar + " " + i[1])
+	i[1] = endVar
+	varCount += 1
+
+
+
 
 for i in vet:
 	if i[0] == "LOADM":
@@ -81,27 +151,32 @@ for i in vet:
 	elif i[0] == "STORM_D":
 		createCode(i,code,"13 ")
 	else:
-		auxVar.append(i)
+		continue
 
 
-varCount = 0
-var = []
 
-for i in auxVar:
-	aux = hex(varCount)[2:]
-	endVar = aux.zfill(3)
-	var.append(endVar + " " + i[1])
-	i[1] = endVar
-	varCount += 1
+instr= []
+
+
 
 codeCount = varCount
 for i in code:
 	aux = hex(codeCount)[2:]
-	saida.write(aux.upper().zfill(3) + " " + i + '\n')
+	instr.append(aux.upper().zfill(3) + " " + i)
 	codeCount += 1
 
 
-#print (code)
-print (auxVar)
-print (var)
+final = var + instr
 
+for i in final:
+	saida.write(i + '\n')
+
+
+# print (auxVar)
+# print (var)
+# print (instr)
+
+# varAdress("a")
+# varAdress("b")
+# varAdress("c")
+# varAdress("d")
