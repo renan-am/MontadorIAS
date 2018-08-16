@@ -1,24 +1,31 @@
+#variaveis globais para usar nas funções
 pos = False
 codePos = 0
 auxVar = []
+code = []
 
+#retorna o endereço da variavel, encontrado em auxVar
 def varAdress (variable):
 	for i in auxVar:
 		if i[0] == variable:
 			return i[1]
 	return variable
 
-
+# testa se o indíce existe no vetor, evita outofbounds error
+# se existir retorna o endereço da variavel
+# se não existir retorna 000, (pra funções como RSH, LSH etc)
 def read(i, ind):
 	try:
 		return varAdress(i[ind])
 	except:
 		return "000"
 
-def createCode( i, code, hex ):
+# concatena a instrução junto com a memória respectiva
+def createCode( i, hex ):
 	global pos
 	global codePos
 	global auxVar
+	global code
 	if pos:
 		code[codePos] += hex + read(i,1)
 		codePos += 1
@@ -28,27 +35,21 @@ def createCode( i, code, hex ):
 		pos = not pos
 
 
-
+#abre o codigo a ser "compilado"
 with open('teste') as f:
      read_data = f.read()
 
-#print (read_data)
+
+# cria um vetor com cada bloco do texto (separado por " "), 
+# a partir do vetor cria uma matriz com cada linha referente a um bloco, cada coluna referente a (instrução, memoria), ou ao (nome da variavel, valor da variavel)
+vet = []
 
 data = read_data.split()
-
-#print(data)
-
-vet = []
 for i in data:
 	vet.append(i.split("."))
 
 
-saida = open("ra.hex", "w+")
-
-code = []
-
-
-
+#preenche auxVar com as variaveis
 for i in vet:
 	if i[0] == "LOADM":
 		continue	
@@ -93,90 +94,79 @@ for i in vet:
 	else:
 		auxVar.append(i)
 
-#print (auxVar)
-
-
-varCount = 0
+#memCount começa a contagem de espaço de memorias utilizados
+memCount = 0
 var = []
 
+# salva em var as linhas de código pronta, com o endereço e valor da memória de cada variavel
+# salva em auxVar o endereço de cada variavel
 for i in auxVar:
-	aux = hex(varCount)[2:]
-	endVar = aux.zfill(3)
+	aux = hex(memCount)[2:] #converte em uma string hexadecimal, depois ignora os dois primeiros caracteres (0x)
+	endVar = aux.zfill(3)   #zfill(x) coloca 0 a esquerda do valor da string, até ter x caracteres
 	var.append(endVar + " " + i[1])
 	i[1] = endVar
-	varCount += 1
+	memCount += 1
 
-
-
-
+# salva em code as instruções e memorias relativas, em hexadecimal, com duas isntruções por linha, e variaveis substituidas por seus endereços
 for i in vet:
 	if i[0] == "LOADM":
-		createCode(i,code,"01 ")
+		createCode(i,"01 ")
 	elif i[0] == "LOADMQM":
-		createCode(i,code,"09 ")
+		createCode(i,"09 ")
 	elif i[0] == "STORM":
-		createCode(i,code,"21 ")
+		createCode(i,"21 ")
 	elif i[0] == "LOADMQ":
-		createCode(i,code,"0A ")
+		createCode(i,"0A ")
 	elif i[0] == "ADDM":
-		createCode(i,code,"05 ")
+		createCode(i,"05 ")
 	elif i[0] == "SUBM":
-		createCode(i,code,"05 ")
+		createCode(i,"06 ")
 	elif i[0] == "MULM":
-		createCode(i,code,"0B ")
+		createCode(i,"0B ")
 	elif i[0] == "DIVM":
-		createCode(i,code,"0C ")
+		createCode(i,"0C ")
 	elif i[0] == "RSH":
-		createCode(i,code,"15 ")
+		createCode(i,"15 ")
 	elif i[0] == "LSH":
-		createCode(i,code,"14 ")
+		createCode(i,"14 ")
 	elif i[0] == "LOADM_ABS":
-		createCode(i,code,"03 ")
+		createCode(i,"03 ")
 	elif i[0] == "LOAD-M":
-		createCode(i,code,"02 ")
+		createCode(i,"02 ")
 	elif i[0] == "ADDM_ABS":
-		createCode(i,code,"07 ")
+		createCode(i,"07 ")
 	elif i[0] == "SUBM_ABS":
-		createCode(i,code,"08 ")
+		createCode(i,"08 ")
 	elif i[0] == "JUMPM_E":
-		createCode(i,code,"0D ")
+		createCode(i,"0D ")
 	elif i[0] == "JUMPM_D":
-		createCode(i,code,"0E ")
+		createCode(i,"0E ")
 	elif i[0] == "JUMP+M_E":
-		createCode(i,code,"0F ")
+		createCode(i,"0F ")
 	elif i[0] == "JUMP+M_D":
-		createCode(i,code,"10 ")
+		createCode(i,"10 ")
 	elif i[0] == "STORM_E":
-		createCode(i,code,"12 ")
+		createCode(i,"12 ")
 	elif i[0] == "STORM_D":
-		createCode(i,code,"13 ")
+		createCode(i,"13 ")
 	else:
 		continue
 
 
-
+#salva em instr a linha de código completa, com o endereço de cada linha
 instr= []
-
-
-
-codeCount = varCount
 for i in code:
-	aux = hex(codeCount)[2:]
+	aux = hex(memCount)[2:] 
 	instr.append(aux.upper().zfill(3) + " " + i)
-	codeCount += 1
+	memCount += 1
 
-
+#concatena var e instr, final é um vetor onde cada elemento representa uma linha do código hexadecimal
 final = var + instr
 
+
+#gera arquivo final
+saida = open("ra.hex", "w+")
 for i in final:
 	saida.write(i + '\n')
 
 
-# print (auxVar)
-# print (var)
-# print (instr)
-
-# varAdress("a")
-# varAdress("b")
-# varAdress("c")
-# varAdress("d")
