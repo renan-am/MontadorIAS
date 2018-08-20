@@ -7,8 +7,9 @@ auxVar = []
 code = []
 memCount = 0
 points = [["pointfinal", 400, False]]
-toPoints= []
-
+toPoints = []
+changes = []
+toChanges = []
 
 #checa flags
 def checkFlags (i, line, pos):
@@ -17,9 +18,9 @@ def checkFlags (i, line, pos):
 	elif i[-1][0:7] == "toPoint":
 		toPoints.append([i[-1], line, pos])
 	elif i[-1][0:4] == "change":
-		return
+		changes.append([i[-1], line, pos])
 	elif i[-1][0:4] == "toChange":
-		return
+		toChanges.append([i[-1], line, pos])
 
 
 #retorna o endereço da variavel, encontrado em auxVar
@@ -113,13 +114,12 @@ for i in vet:
 		continue
 	elif i[0] == "JUMP+M":
 		continue
-	elif i[0] == "STORM_E":
-		continue
-	elif i[0] == "STORM_D":
-		continue
+	elif i[0] == "STORM":
 	else:
 		auxVar.append(i)
 
+
+# inicializa memVarStart
 var = []
 
 if memVarStart != 0:
@@ -172,41 +172,20 @@ for i in vet:
 		createLine(i,"LOOP ")
 	elif i[0] == "JUMP+M":
 		createLine(i,"IFLOOP ")
-	elif i[0] == "STORM_E":
-		createLine(i,"12 ")
-	elif i[0] == "STORM_D":
-		createLine(i,"13 ")
+	elif i[0] == "STORM":
+		createLine(i,"STORM ")
 	else:
 		continue
 
-
-# for i in code:
-# 	print (i[0] + i[1] + i[2] + i[3] + i[4])
-
-# print ("")
-# for i in var:
-# 	print (i[0] + i[1])	
-
-# print ("")
-# for i in points:
-# 	print (i)
-
-# print ("")
-# for i in toPoints:
-# 	print (i)
-
-
 final = code + var
 
-# for i in final:
-# 	print (i)
-
+#Faz as modificações para JUMP M e JUMP+M
 for i in toPoints:
 	aux = 0
 	for j in points:
 		if j[0] == i[0][2:].lower():
 			aux = j
-	for j in final:
+	for j in final: # compara os indices das linhas
 		if j[0][0:3] == i[1]:
 			if i[2]: #instrução do loop está na direita
 				if aux[2]: #destino do loop esta na direita
@@ -234,6 +213,26 @@ for i in toPoints:
 				j[2] = aux[1] #memoria do destino do loop	
 
 
+# Faz a modificação para STOR M
+for i in toChanges:
+	aux = 0
+	for j in changes:
+		if j[0] == i[0][2:].lower():
+			aux = j
+	for j in final:
+		if j[0][0:3] == i[1]: # compara os indices das linhas
+			if i[2]: #instrução da mudança está na direita
+				if aux[2]: # destino da mudança esta na direita
+					j[3] = "13 " # STOR M direita
+				else: #destino da mudança esta na esquerda
+					j[3] = "12 " # STOR M Esquerda
+				j[4] = aux[1] # memoria do destino da mudança
+			else: # instrução da mudança está na direita
+				if aux[2]: # destino da mudança esta na direita
+					j[1] = "13 " # STOR M direita
+				else:  #destino da mudança esta na esquerda
+					j[1] = "12 " # STOR M Esquerda
+				j[2] = aux[1] # memoria do destino da mudança	
 
 # gera arquivo final
 saida = open("ra.hex", "w+")
