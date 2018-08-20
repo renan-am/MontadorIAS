@@ -31,7 +31,7 @@ STOR M(X) -> STORM.X.toChange#
 exemplo de loop:  
     
   003 LOAD M(X) ADD M(X)  
-  004 JUMP M(003,20:39)   
+  004 JUMP M(003,0:19)   
       
   LOADM.x.point1 ADDM.X  
   JUMPM.x.toPoint1  
